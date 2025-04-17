@@ -1,5 +1,6 @@
 plugins {
     id 'project-conventions'
+    id 'java'
 }
 
 dependencies {
