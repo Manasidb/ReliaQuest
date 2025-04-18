@@ -1,9 +1,12 @@
 package com.reliaquest.api.service;
 
 import com.reliaquest.api.dto.*;
+import com.reliaquest.api.exception.CustomRuntimeException;
 import com.reliaquest.api.exception.EmployeeAlreadyExistsException;
 import com.reliaquest.api.exception.EmployeeNotFoundException;
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -12,6 +15,8 @@ import org.springframework.web.client.RestTemplate;
 
 @Service
 public class IEmployeeServiceImpl implements IEmployeeService {
+
+    private static final Logger logger = LoggerFactory.getLogger(IEmployeeServiceImpl.class);
 
     private final RestTemplate restTemplate;
     private static final String MOCK_EMPLOYEE_API = "http://localhost:8112/api/v1/employee";
@@ -29,30 +34,34 @@ public class IEmployeeServiceImpl implements IEmployeeService {
             return response.getBody().getData();
 
         } catch (Exception ex) {
-            throw new RuntimeException("Unexpected error occured while fetching employees: " + ex.getMessage());
+            logger.error("getAllEmployees() : Unexpected error occured while fetching employees: " + ex.getMessage());
+            throw new CustomRuntimeException("Unexpected error occured while fetching employees: " + ex.getCause());
         }
     }
 
     @Override
-    public List<Employee> getEmployeesByNameSearch(String searchString) {
+    public List<Employee> getEmployeesByNameSearch(String employeeName) {
 
         try {
-            List<Employee> employees = searchEmployeesByName(searchString);
+            List<Employee> employees = searchEmployeesByName(employeeName);
             if (employees.isEmpty()) {
-
-                throw new EmployeeNotFoundException("Employee with name " + searchString + " not found.");
+                logger.error("getEmployeesByNameSearch() response: Employee with name {} not found", employeeName);
+                throw new EmployeeNotFoundException("Employee with name " + employeeName + " not found.");
             }
             return employees;
         } catch (EmployeeNotFoundException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new RuntimeException("Unexpected error occured while fetching employee by name " + ex.getMessage());
+            logger.error("getEmployeesByNameSearch() : Unexpected error occured while fetching employee by name : "
+                    + ex.getMessage());
+            throw new CustomRuntimeException(
+                    "Unexpected error occured while fetching employee by name " + ex.getCause());
         }
     }
 
     @Override
-    public Employee getEmployeeById(String id) {
-        String url = MOCK_EMPLOYEE_API + "/" + id;
+    public Employee getEmployeeById(String employeeId) {
+        String url = MOCK_EMPLOYEE_API + "/" + employeeId;
         try {
             ResponseEntity<EmployeeResponse> response =
                     restTemplate.exchange(url, HttpMethod.GET, null, EmployeeResponse.class);
@@ -60,9 +69,13 @@ public class IEmployeeServiceImpl implements IEmployeeService {
             Employee employee = response.getBody().getData();
             return employee;
         } catch (HttpClientErrorException.NotFound ex) {
-            throw new EmployeeNotFoundException("Employee with id " + id + " not found.");
+            logger.error("getEmployeeById() response: Employee with employeeId {} not found", employeeId);
+            throw new EmployeeNotFoundException("Employee with id " + employeeId + " not found.");
         } catch (Exception ex) {
-            throw new RuntimeException("Unexpected error occured while fetching employee by id " + ex.getMessage());
+            logger.error(
+                    "getEmployeeById() : Unexpected error occured while fetching employee by id : " + ex.getMessage());
+            throw new CustomRuntimeException(
+                    "Unexpected error occured while fetching employee by id " + ex.getCause());
         }
     }
 
@@ -77,7 +90,10 @@ public class IEmployeeServiceImpl implements IEmployeeService {
                     .orElseThrow(() -> new RuntimeException("There is no maximum salary"));
 
         } catch (Exception ex) {
-            throw new RuntimeException("Unexpected error occured while fetching highest salary " + ex.getMessage());
+            logger.error("getHighestSalaryOfEmployees() : Unexpected error occured while fetching highest salary : "
+                    + ex.getMessage());
+            throw new CustomRuntimeException(
+                    "Unexpected error occured while fetching highest salary " + ex.getCause());
         }
     }
 
@@ -94,15 +110,20 @@ public class IEmployeeServiceImpl implements IEmployeeService {
                     .toList();
 
         } catch (Exception ex) {
-            throw new RuntimeException("Unexpected error occured while fetching highest salary " + ex.getMessage());
+            logger.error(
+                    "getTopTenHighestEarningEmployeeNames() : Unexpected error occured while fetching highest salary  : "
+                            + ex.getMessage());
+            throw new CustomRuntimeException(
+                    "Unexpected error occured while fetching highest salary " + ex.getCause());
         }
     }
 
     @Override
     public Employee createEmployee(CreateEmployeeRequest createEmployeeRequest) {
-
         try {
             if (!searchEmployeesByName(createEmployeeRequest.getName()).isEmpty()) {
+                logger.error(
+                        "createEmployee() : Employee with name " + createEmployeeRequest.getName() + " already exists");
                 throw new EmployeeAlreadyExistsException(
                         "Employee with name " + createEmployeeRequest.getName() + " already exists");
             }
@@ -111,22 +132,24 @@ public class IEmployeeServiceImpl implements IEmployeeService {
             ResponseEntity<EmployeeResponse> response =
                     restTemplate.postForEntity(MOCK_EMPLOYEE_API, requestEntity, EmployeeResponse.class);
 
+            logger.debug("createEmployee() createEmployeeResponse : " + response);
             return response.getBody().getData();
 
         } catch (EmployeeAlreadyExistsException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new RuntimeException("Unexpected error during employee creation: " + ex.getMessage());
+            logger.error("createEmployee() : Unexpected error during employee creation: " + ex.getMessage());
+            throw new CustomRuntimeException("Unexpected error during employee creation: " + ex.getCause());
         }
     }
 
     @Override
-    public String deleteEmployeeById(String id) {
-
+    public String deleteEmployeeById(String employeeId) {
         try {
-            String employeeName = getEmployeeById(id).getName();
+            String employeeName = getEmployeeById(employeeId).getName();
             if (employeeName == null) {
-                throw new EmployeeNotFoundException("Employee with id " + id + " doesn't exists");
+                logger.error("deleteEmployeeById(): Employee with id " + employeeId + " doesn't exists");
+                throw new EmployeeNotFoundException("Employee with id " + employeeId + " doesn't exists");
             }
             DeleteEmployeeRequest deleteEmployeeRequest = new DeleteEmployeeRequest();
             deleteEmployeeRequest.setName(employeeName);
@@ -137,13 +160,16 @@ public class IEmployeeServiceImpl implements IEmployeeService {
                     MOCK_EMPLOYEE_API, HttpMethod.DELETE, requestEntity, DeleteEmployeeResponse.class, employeeName);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody().isData()) {
-                return "Employee with id " + id + " deleted successfully";
+                return "Employee with id " + employeeId + " deleted successfully";
             }
-            throw new RuntimeException("Failed to delete employee with id " + id);
+            throw new CustomRuntimeException("Failed to delete employee with id " + employeeId);
         } catch (EmployeeNotFoundException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new RuntimeException("Unexpected error occured while deleting employee by id " + ex.getMessage());
+            logger.error("deleteEmployeeById() : Unexpected error occured while deleting employee by id : "
+                    + ex.getMessage());
+            throw new CustomRuntimeException(
+                    "Unexpected error occured while deleting employee by id " + ex.getCause());
         }
     }
 
@@ -159,13 +185,13 @@ public class IEmployeeServiceImpl implements IEmployeeService {
         return header;
     }
 
-    private List<Employee> searchEmployeesByName(String searchString) {
+    private List<Employee> searchEmployeesByName(String employeeName) {
         try {
             ResponseEntity<EmployeeResponseWrapper> response = fetchEmployeeData();
 
             return response.getBody().getData().stream()
                     .filter(emp ->
-                            emp.getName() != null && emp.getName().toLowerCase().contains(searchString.toLowerCase()))
+                            emp.getName() != null && emp.getName().toLowerCase().contains(employeeName.toLowerCase()))
                     .toList();
         } catch (Exception ex) {
             return Collections.emptyList();

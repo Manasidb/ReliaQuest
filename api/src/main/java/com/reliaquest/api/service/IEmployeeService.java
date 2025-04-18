@@ -8,9 +8,9 @@ public interface IEmployeeService {
 
     List<Employee> getAllEmployees();
 
-    List<Employee> getEmployeesByNameSearch(String searchString);
+    List<Employee> getEmployeesByNameSearch(String employeeName);
 
-    Employee getEmployeeById(String id);
+    Employee getEmployeeById(String employeeId);
 
     Integer getHighestSalaryOfEmployees();
 
@@ -18,5 +18,5 @@ public interface IEmployeeService {
 
     Employee createEmployee(CreateEmployeeRequest createEmployeeRequest);
 
-    String deleteEmployeeById(String id);
+    String deleteEmployeeById(String employeeId);
 }
