@@ -1,5 +1,7 @@
 package com.reliaquest.api.controller;
 
+import com.reliaquest.api.dto.CreateEmployeeRequest;
+import com.reliaquest.api.dto.Employee;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -8,26 +10,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-/**
- * Please <b>do not</b> modify this interface. If you believe there's a bug or the API contract does not align with our
- * mock web server... that is intentional. Good luck!
- *
- * @implNote It's uncommon to have a web controller implement an interface; We include such design pattern to
- * ensure users are following the desired input/output for our API contract, as outlined in the code assessment's README.
- *
- * @param <Entity> object representation of an Employee
- * @param <Input> object representation of a request body for creating Employee(s)
- */
-public interface IEmployeeController<Entity, Input> {
+public interface IEmployeeController {
 
     @GetMapping()
-    ResponseEntity<List<Entity>> getAllEmployees();
+    ResponseEntity<List<Employee>> getAllEmployees();
 
     @GetMapping("/search/{searchString}")
-    ResponseEntity<List<Entity>> getEmployeesByNameSearch(@PathVariable String searchString);
+    ResponseEntity<List<Employee>> getEmployeesByNameSearch(@PathVariable("searchString") String employeeName);
 
     @GetMapping("/{id}")
-    ResponseEntity<Entity> getEmployeeById(@PathVariable String id);
+    ResponseEntity<Employee> getEmployeeById(@PathVariable("id") String employeeId);
 
     @GetMapping("/highestSalary")
     ResponseEntity<Integer> getHighestSalaryOfEmployees();
@@ -36,8 +28,8 @@ public interface IEmployeeController<Entity, Input> {
     ResponseEntity<List<String>> getTopTenHighestEarningEmployeeNames();
 
     @PostMapping()
-    ResponseEntity<Entity> createEmployee(@RequestBody Input employeeInput);
+    ResponseEntity<Employee> createEmployee(@RequestBody CreateEmployeeRequest createEmployeeRequest);
 
     @DeleteMapping("/{id}")
-    ResponseEntity<String> deleteEmployeeById(@PathVariable String id);
+    ResponseEntity<String> deleteEmployeeById(@PathVariable("id") String employeeId);
 }
