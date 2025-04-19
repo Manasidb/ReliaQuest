@@ -8,6 +8,7 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -19,7 +20,9 @@ public class IEmployeeServiceImpl implements IEmployeeService {
     private static final Logger logger = LoggerFactory.getLogger(IEmployeeServiceImpl.class);
 
     private final RestTemplate restTemplate;
-    private static final String MOCK_EMPLOYEE_API = "http://localhost:8112/api/v1/employee";
+
+    @Value("${employee.api.url}")
+    private String MOCK_EMPLOYEE_API_URL;
 
     @Autowired
     public IEmployeeServiceImpl(RestTemplate restTemplate) {
@@ -61,7 +64,7 @@ public class IEmployeeServiceImpl implements IEmployeeService {
 
     @Override
     public Employee getEmployeeById(String employeeId) {
-        String url = MOCK_EMPLOYEE_API + "/" + employeeId;
+        String url = MOCK_EMPLOYEE_API_URL + "/" + employeeId;
         try {
             ResponseEntity<EmployeeResponse> response =
                     restTemplate.exchange(url, HttpMethod.GET, null, EmployeeResponse.class);
@@ -140,7 +143,7 @@ public class IEmployeeServiceImpl implements IEmployeeService {
 
             HttpEntity<CreateEmployeeRequest> requestEntity = new HttpEntity<>(createEmployeeRequest, getHeader());
             ResponseEntity<EmployeeResponse> response =
-                    restTemplate.postForEntity(MOCK_EMPLOYEE_API, requestEntity, EmployeeResponse.class);
+                    restTemplate.postForEntity(MOCK_EMPLOYEE_API_URL, requestEntity, EmployeeResponse.class);
 
             logger.debug("createEmployee() createEmployeeResponse : " + response);
             return response.getBody().getData();
@@ -163,7 +166,11 @@ public class IEmployeeServiceImpl implements IEmployeeService {
             HttpEntity<DeleteEmployeeRequest> requestEntity = new HttpEntity<>(deleteEmployeeRequest, getHeader());
 
             ResponseEntity<DeleteEmployeeResponse> response = restTemplate.exchange(
-                    MOCK_EMPLOYEE_API, HttpMethod.DELETE, requestEntity, DeleteEmployeeResponse.class, employeeName);
+                    MOCK_EMPLOYEE_API_URL,
+                    HttpMethod.DELETE,
+                    requestEntity,
+                    DeleteEmployeeResponse.class,
+                    employeeName);
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody().isData()) {
                 return "Employee with id " + employeeId + " deleted successfully";
@@ -180,7 +187,7 @@ public class IEmployeeServiceImpl implements IEmployeeService {
 
     private ResponseEntity<EmployeeResponseWrapper> fetchEmployeeData() {
         ResponseEntity<EmployeeResponseWrapper> response =
-                restTemplate.exchange(MOCK_EMPLOYEE_API, HttpMethod.GET, null, EmployeeResponseWrapper.class);
+                restTemplate.exchange(MOCK_EMPLOYEE_API_URL, HttpMethod.GET, null, EmployeeResponseWrapper.class);
         return response;
     }
 

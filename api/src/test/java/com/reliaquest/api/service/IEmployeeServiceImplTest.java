@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.*;
@@ -30,7 +31,8 @@ public class IEmployeeServiceImplTest {
     @Autowired
     private IEmployeeServiceImpl iEmployeeServiceImpl;
 
-    static final String MOCK_EMPLOYEE_API = "http://localhost:8112/api/v1/employee";
+    @Value("${employee.api.url}")
+    private String MOCK_EMPLOYEE_API_URL;
 
     private static List<Employee> employeeList;
 
@@ -83,7 +85,7 @@ public class IEmployeeServiceImplTest {
                 expectedEmployeeResponseWrapper.getBody().getData();
 
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
+                        eq(MOCK_EMPLOYEE_API_URL), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
                 .thenReturn(expectedEmployeeResponseWrapper);
 
         // Act
@@ -96,7 +98,7 @@ public class IEmployeeServiceImplTest {
     @Test
     void getAllEmployeesFailure() {
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
+                        eq(MOCK_EMPLOYEE_API_URL), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"));
 
         // Act
@@ -118,7 +120,7 @@ public class IEmployeeServiceImplTest {
                 new ResponseEntity<>(employeeResponseWrapper, HttpStatus.OK);
 
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
+                        eq(MOCK_EMPLOYEE_API_URL), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
                 .thenReturn(expectedEmployeeResponseWrapper);
 
         // Act
@@ -141,7 +143,7 @@ public class IEmployeeServiceImplTest {
                 new ResponseEntity<>(employeeResponseWrapper, HttpStatus.OK);
 
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
+                        eq(MOCK_EMPLOYEE_API_URL), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
                 .thenReturn(expectedEmployeeResponseWrapper);
 
         // Act and Assert
@@ -162,7 +164,7 @@ public class IEmployeeServiceImplTest {
                 new ResponseEntity<>(employeeResponse, HttpStatus.OK);
 
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API + "/" + employee.getId()),
+                        eq(MOCK_EMPLOYEE_API_URL + "/" + employee.getId()),
                         eq(HttpMethod.GET),
                         isNull(),
                         eq(EmployeeResponse.class)))
@@ -183,7 +185,7 @@ public class IEmployeeServiceImplTest {
 
         // Mock RestTemplate throwing HttpClientErrorException (
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API + "/" + employeeId),
+                        eq(MOCK_EMPLOYEE_API_URL + "/" + employeeId),
                         eq(HttpMethod.GET),
                         isNull(),
                         eq(EmployeeResponse.class)))
@@ -204,7 +206,7 @@ public class IEmployeeServiceImplTest {
         HttpHeaders headers = new HttpHeaders();
 
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API + "/" + employeeId),
+                        eq(MOCK_EMPLOYEE_API_URL + "/" + employeeId),
                         eq(HttpMethod.GET),
                         isNull(),
                         eq(EmployeeResponse.class)))
@@ -228,7 +230,7 @@ public class IEmployeeServiceImplTest {
                 new ResponseEntity<>(employeeResponseWrapper, HttpStatus.OK);
 
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
+                        eq(MOCK_EMPLOYEE_API_URL), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
                 .thenReturn(expectedEmployeeResponseWrapper);
 
         // Act
@@ -242,7 +244,7 @@ public class IEmployeeServiceImplTest {
     void getHighestSalaryOfEmployeesFailure() {
 
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
+                        eq(MOCK_EMPLOYEE_API_URL), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"));
 
         // Act & Assert
@@ -269,7 +271,7 @@ public class IEmployeeServiceImplTest {
                 .toList();
 
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
+                        eq(MOCK_EMPLOYEE_API_URL), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
                 .thenReturn(expectedEmployeeResponseWrapper);
 
         // Act
@@ -282,7 +284,7 @@ public class IEmployeeServiceImplTest {
     @Test
     void getTopTenHighestEarningEmployeeNamesFailure() {
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
+                        eq(MOCK_EMPLOYEE_API_URL), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"));
 
         // Act & Assert
@@ -305,7 +307,7 @@ public class IEmployeeServiceImplTest {
                 new ResponseEntity<>(employeeResponseWrapper, HttpStatus.OK);
 
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
+                        eq(MOCK_EMPLOYEE_API_URL), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
                 .thenReturn(emptySearchResponse);
 
         // Mock create employee
@@ -316,7 +318,7 @@ public class IEmployeeServiceImplTest {
         ResponseEntity<EmployeeResponse> responseEntity = new ResponseEntity<>(employeeResponse, HttpStatus.CREATED);
 
         Mockito.when(restTemplate.postForEntity(
-                        eq(MOCK_EMPLOYEE_API), Mockito.any(HttpEntity.class), eq(EmployeeResponse.class)))
+                        eq(MOCK_EMPLOYEE_API_URL), Mockito.any(HttpEntity.class), eq(EmployeeResponse.class)))
                 .thenReturn(responseEntity);
 
         // Act
@@ -330,7 +332,7 @@ public class IEmployeeServiceImplTest {
     @Test
     void createEmployeeFailure() {
         Mockito.when(restTemplate.postForEntity(
-                        eq(MOCK_EMPLOYEE_API), Mockito.any(HttpEntity.class), eq(EmployeeResponse.class)))
+                        eq(MOCK_EMPLOYEE_API_URL), Mockito.any(HttpEntity.class), eq(EmployeeResponse.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"));
 
         CustomRuntimeException exception = assertThrows(CustomRuntimeException.class, () -> {
@@ -358,7 +360,7 @@ public class IEmployeeServiceImplTest {
         mockGetResponse.setData(mockEmployee);
 
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API + "/" + employeeId),
+                        eq(MOCK_EMPLOYEE_API_URL + "/" + employeeId),
                         eq(HttpMethod.GET),
                         isNull(),
                         eq(EmployeeResponse.class)))
@@ -369,7 +371,7 @@ public class IEmployeeServiceImplTest {
         deleteResponse.setData(true);
 
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API),
+                        eq(MOCK_EMPLOYEE_API_URL),
                         eq(HttpMethod.DELETE),
                         Mockito.any(HttpEntity.class),
                         eq(DeleteEmployeeResponse.class),
@@ -389,7 +391,7 @@ public class IEmployeeServiceImplTest {
         HttpHeaders headers = new HttpHeaders();
 
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API + "/" + employeeId),
+                        eq(MOCK_EMPLOYEE_API_URL + "/" + employeeId),
                         eq(HttpMethod.GET),
                         isNull(),
                         eq(EmployeeResponse.class)))
@@ -406,7 +408,7 @@ public class IEmployeeServiceImplTest {
     void testDeleteEmployeeByIdFailure() {
         String employeeId = "1";
         Mockito.when(restTemplate.exchange(
-                        eq(MOCK_EMPLOYEE_API),
+                        eq(MOCK_EMPLOYEE_API_URL),
                         eq(HttpMethod.DELETE),
                         Mockito.any(HttpEntity.class),
                         eq(DeleteEmployeeResponse.class),
