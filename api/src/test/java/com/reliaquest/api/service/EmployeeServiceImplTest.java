@@ -24,12 +24,12 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootTest
-public class IEmployeeServiceImplTest {
+public class EmployeeServiceImplTest {
     @MockBean
     private RestTemplate restTemplate;
 
     @Autowired
-    private IEmployeeServiceImpl iEmployeeServiceImpl;
+    private EmployeeServiceImpl employeeServiceImpl;
 
     @Value("${employee.api.url}")
     private String MOCK_EMPLOYEE_API_URL;
@@ -89,25 +89,23 @@ public class IEmployeeServiceImplTest {
                 .thenReturn(expectedEmployeeResponseWrapper);
 
         // Act
-        List<Employee> actualResponse = iEmployeeServiceImpl.getAllEmployees();
+        List<Employee> actualResponse = employeeServiceImpl.getAllEmployees();
 
         // Assert
         assertEquals(expectedResponse.size(), actualResponse.size());
     }
 
     @Test
-    void getAllEmployeesFailure() {
+    void getAllEmployeesFallbackTriggered() {
         Mockito.when(restTemplate.exchange(
                         eq(MOCK_EMPLOYEE_API_URL), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"));
 
-        // Act
-        CustomRuntimeException exception = assertThrows(CustomRuntimeException.class, () -> {
-            iEmployeeServiceImpl.getAllEmployees();
-        });
+        List<Employee> result = employeeServiceImpl.getAllEmployees();
 
-        // Assert
-        assertTrue(exception.getMessage().contains("Unexpected error occured while fetching employees"));
+        // assert result from fallback (assuming fallback returns empty list)
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
     }
 
     @Test
@@ -124,7 +122,7 @@ public class IEmployeeServiceImplTest {
                 .thenReturn(expectedEmployeeResponseWrapper);
 
         // Act
-        List<Employee> actualResponse = iEmployeeServiceImpl.getEmployeesByNameSearch("employee2");
+        List<Employee> actualResponse = employeeServiceImpl.getEmployeesByNameSearch("employee2");
 
         // Assert
         assertEquals(1, actualResponse.size());
@@ -148,7 +146,7 @@ public class IEmployeeServiceImplTest {
 
         // Act and Assert
         EmployeeNotFoundException exception = assertThrows(EmployeeNotFoundException.class, () -> {
-            iEmployeeServiceImpl.getEmployeesByNameSearch(employeeName);
+            employeeServiceImpl.getEmployeesByNameSearch(employeeName);
         });
         assertEquals("Employee with name xyz not found.", exception.getMessage());
     }
@@ -171,7 +169,7 @@ public class IEmployeeServiceImplTest {
                 .thenReturn(expectedEmployeeResponseWrapper);
 
         // Act
-        Employee actualResponse = iEmployeeServiceImpl.getEmployeeById("1");
+        Employee actualResponse = employeeServiceImpl.getEmployeeById("1");
 
         // Assert
         assertEquals(expectedEmployeeResponseWrapper.getBody().getData().getId(), actualResponse.getId());
@@ -194,7 +192,7 @@ public class IEmployeeServiceImplTest {
 
         // Act and Assert
         EmployeeNotFoundException exception = assertThrows(EmployeeNotFoundException.class, () -> {
-            iEmployeeServiceImpl.getEmployeeById(employeeId);
+            employeeServiceImpl.getEmployeeById(employeeId);
         });
 
         assertEquals("Employee with id 123 not found.", exception.getMessage());
@@ -214,7 +212,7 @@ public class IEmployeeServiceImplTest {
 
         // Act and Assert
         CustomRuntimeException exception = assertThrows(CustomRuntimeException.class, () -> {
-            iEmployeeServiceImpl.getEmployeeById(employeeId);
+            employeeServiceImpl.getEmployeeById(employeeId);
         });
 
         assertTrue(exception.getMessage().contains("Unexpected error occurred while fetching employee by id:"));
@@ -234,7 +232,7 @@ public class IEmployeeServiceImplTest {
                 .thenReturn(expectedEmployeeResponseWrapper);
 
         // Act
-        Integer result = iEmployeeServiceImpl.getHighestSalaryOfEmployees();
+        Integer result = employeeServiceImpl.getHighestSalaryOfEmployees();
 
         // Assert
         assertEquals(Integer.parseInt("9900000"), result);
@@ -249,7 +247,7 @@ public class IEmployeeServiceImplTest {
 
         // Act & Assert
         CustomRuntimeException exception = assertThrows(CustomRuntimeException.class, () -> {
-            iEmployeeServiceImpl.getHighestSalaryOfEmployees();
+            employeeServiceImpl.getHighestSalaryOfEmployees();
         });
 
         assertTrue(exception.getMessage().contains("Unexpected error occured while fetching highest salary"));
@@ -275,7 +273,7 @@ public class IEmployeeServiceImplTest {
                 .thenReturn(expectedEmployeeResponseWrapper);
 
         // Act
-        List<String> result = iEmployeeServiceImpl.getTopTenHighestEarningEmployeeNames();
+        List<String> result = employeeServiceImpl.getTopTenHighestEarningEmployeeNames();
 
         // Assert
         assertEquals(expectedResult, result);
@@ -289,7 +287,7 @@ public class IEmployeeServiceImplTest {
 
         // Act & Assert
         CustomRuntimeException exception = assertThrows(CustomRuntimeException.class, () -> {
-            iEmployeeServiceImpl.getTopTenHighestEarningEmployeeNames();
+            employeeServiceImpl.getTopTenHighestEarningEmployeeNames();
         });
 
         assertTrue(exception
@@ -322,7 +320,7 @@ public class IEmployeeServiceImplTest {
                 .thenReturn(responseEntity);
 
         // Act
-        Employee result = iEmployeeServiceImpl.createEmployee(createEmployeeRequest);
+        Employee result = employeeServiceImpl.createEmployee(createEmployeeRequest);
 
         // Assert
         assertEquals("abc", result.getName());
@@ -336,7 +334,7 @@ public class IEmployeeServiceImplTest {
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"));
 
         CustomRuntimeException exception = assertThrows(CustomRuntimeException.class, () -> {
-            iEmployeeServiceImpl.createEmployee(createEmployeeRequest);
+            employeeServiceImpl.createEmployee(createEmployeeRequest);
         });
 
         assertTrue(exception.getMessage().contains("Unexpected error during employee creation:"));
@@ -379,7 +377,7 @@ public class IEmployeeServiceImplTest {
                 .thenReturn(new ResponseEntity<>(deleteResponse, HttpStatus.OK));
 
         // Act
-        String result = iEmployeeServiceImpl.deleteEmployeeById(employeeId);
+        String result = employeeServiceImpl.deleteEmployeeById(employeeId);
 
         // Assert
         assertEquals("Employee with id 1 deleted successfully", result);
@@ -399,7 +397,7 @@ public class IEmployeeServiceImplTest {
                         HttpStatus.NOT_FOUND, "Employee not found", headers, null, StandardCharsets.UTF_8));
 
         EmployeeNotFoundException exception = assertThrows(EmployeeNotFoundException.class, () -> {
-            iEmployeeServiceImpl.deleteEmployeeById(employeeId);
+            employeeServiceImpl.deleteEmployeeById(employeeId);
         });
         assertTrue(exception.getMessage().contains("Employee with id " + employeeId + " not found."));
     }
@@ -416,7 +414,7 @@ public class IEmployeeServiceImplTest {
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"));
 
         CustomRuntimeException exception = assertThrows(CustomRuntimeException.class, () -> {
-            iEmployeeServiceImpl.deleteEmployeeById(employeeId);
+            employeeServiceImpl.deleteEmployeeById(employeeId);
         });
 
         assertTrue(exception.getMessage().contains("Unexpected error occured while deleting employee by id"));

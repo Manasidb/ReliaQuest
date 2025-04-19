@@ -4,20 +4,26 @@ import com.reliaquest.api.dto.*;
 import com.reliaquest.api.exception.CustomRuntimeException;
 import com.reliaquest.api.exception.EmployeeAlreadyExistsException;
 import com.reliaquest.api.exception.EmployeeNotFoundException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-public class IEmployeeServiceImpl implements IEmployeeService {
+public class EmployeeServiceImpl implements IEmployeeService {
 
-    private static final Logger logger = LoggerFactory.getLogger(IEmployeeServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
     private final RestTemplate restTemplate;
 
@@ -25,21 +31,19 @@ public class IEmployeeServiceImpl implements IEmployeeService {
     private String MOCK_EMPLOYEE_API_URL;
 
     @Autowired
-    public IEmployeeServiceImpl(RestTemplate restTemplate) {
+    private CacheManager cacheManager;
+
+    @Autowired
+    public EmployeeServiceImpl(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
+    @CircuitBreaker(name = "employeeService", fallbackMethod = "fallbackGetEmployees")
+    @Retry(name = "employeeService", fallbackMethod = "fallbackGetEmployees")
     @Override
     public List<Employee> getAllEmployees() {
-        try {
-
-            ResponseEntity<EmployeeResponseWrapper> response = fetchEmployeeData();
-            return response.getBody().getData();
-
-        } catch (Exception ex) {
-            logger.error("getAllEmployees() : Unexpected error occured while fetching employees: " + ex.getMessage());
-            throw new CustomRuntimeException("Unexpected error occured while fetching employees: " + ex.getCause());
-        }
+        ResponseEntity<EmployeeResponseWrapper> response = fetchEmployeeData();
+        return response.getBody().getData();
     }
 
     @Override
@@ -62,6 +66,7 @@ public class IEmployeeServiceImpl implements IEmployeeService {
         }
     }
 
+    @Cacheable(value = "employeeById", key = "#employeeId")
     @Override
     public Employee getEmployeeById(String employeeId) {
         String url = MOCK_EMPLOYEE_API_URL + "/" + employeeId;
@@ -156,6 +161,7 @@ public class IEmployeeServiceImpl implements IEmployeeService {
         }
     }
 
+    @CacheEvict(value = "employeeById", key = "#employeeId")
     @Override
     public String deleteEmployeeById(String employeeId) {
         try {
@@ -185,6 +191,14 @@ public class IEmployeeServiceImpl implements IEmployeeService {
         }
     }
 
+    public Employee getFromCache(String employeeId) {
+        Cache cache = cacheManager.getCache("employeeById");
+        if (cache != null) {
+            return cache.get(employeeId, Employee.class);
+        }
+        return null;
+    }
+
     private ResponseEntity<EmployeeResponseWrapper> fetchEmployeeData() {
         ResponseEntity<EmployeeResponseWrapper> response =
                 restTemplate.exchange(MOCK_EMPLOYEE_API_URL, HttpMethod.GET, null, EmployeeResponseWrapper.class);
@@ -209,5 +223,13 @@ public class IEmployeeServiceImpl implements IEmployeeService {
         } catch (Exception ex) {
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * @return we can return cached/default data in fallbackmethod
+     */
+    public List<Employee> fallbackGetEmployees(Throwable t) {
+        logger.warn("Fallback triggered due to: {}", t.toString());
+        return List.of();
     }
 }

@@ -1,11 +1,14 @@
 package com.reliaquest.api.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.reliaquest.api.dto.CreateEmployeeRequest;
 import com.reliaquest.api.dto.Employee;
 import com.reliaquest.api.service.IEmployeeService;
+import jakarta.validation.*;
+import jakarta.validation.ConstraintViolation;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -19,7 +22,10 @@ import org.springframework.http.ResponseEntity;
 public class IEmployeeControllerImplTest {
 
     @Autowired
-    private IEmployeeControllerImpl employeeController;
+    private EmployeeControllerImpl employeeController;
+
+    @Autowired
+    private Validator validator;
 
     @MockBean
     private IEmployeeService iEmployeeService;
@@ -95,6 +101,15 @@ public class IEmployeeControllerImplTest {
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals("employee1", response.getBody().getName());
+    }
+
+    @Test
+    void testCreateEmployeeValidationError() {
+        CreateEmployeeRequest request =
+                new CreateEmployeeRequest("employee1", "1000000", "1", "title employee1", "invalid-email");
+
+        Set<ConstraintViolation<CreateEmployeeRequest>> violations = validator.validate(request);
+        assertFalse(violations.isEmpty());
     }
 
     @Test

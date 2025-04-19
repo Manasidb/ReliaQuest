@@ -2,8 +2,8 @@ package com.reliaquest.api.controller;
 
 import com.reliaquest.api.dto.CreateEmployeeRequest;
 import com.reliaquest.api.dto.Employee;
+import com.reliaquest.api.service.EmployeeServiceImpl;
 import com.reliaquest.api.service.IEmployeeService;
-import com.reliaquest.api.service.IEmployeeServiceImpl;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.slf4j.Logger;
@@ -18,13 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(path = "/api/v1/employee")
-public class IEmployeeControllerImpl implements IEmployeeController {
+public class EmployeeControllerImpl implements IEmployeeController {
 
-    private static final Logger logger = LoggerFactory.getLogger(IEmployeeServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(EmployeeServiceImpl.class);
     private final IEmployeeService iEmployeeService;
 
     @Autowired
-    public IEmployeeControllerImpl(IEmployeeService iEmployeeService) {
+    public EmployeeControllerImpl(IEmployeeService iEmployeeService) {
         this.iEmployeeService = iEmployeeService;
     }
 
@@ -40,7 +40,7 @@ public class IEmployeeControllerImpl implements IEmployeeController {
     }
 
     @Override
-    public ResponseEntity<Employee> getEmployeeById(@PathVariable("id") String employeeId) {
+    public ResponseEntity<Employee> getEmployeeById(@PathVariable(value = "id", required = true) String employeeId) {
         logger.info("IEmployeeControllerImpl : getEmployeeById() : employeeId : {}", employeeId);
         return ResponseEntity.ok(iEmployeeService.getEmployeeById(employeeId));
     }
@@ -63,7 +63,7 @@ public class IEmployeeControllerImpl implements IEmployeeController {
     }
 
     @Override
-    public ResponseEntity<String> deleteEmployeeById(@PathVariable("id") String employeeId) {
+    public ResponseEntity<String> deleteEmployeeById(@PathVariable(value = "id") String employeeId) {
         logger.info("IEmployeeControllerImpl : deleteEmployeeById() : employeeId : {}", employeeId);
         return ResponseEntity.ok(iEmployeeService.deleteEmployeeById(employeeId));
     }
