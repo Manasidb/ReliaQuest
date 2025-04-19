@@ -4,14 +4,13 @@ import com.reliaquest.api.exception.CustomRuntimeException;
 import com.reliaquest.api.exception.EmployeeAlreadyExistsException;
 import com.reliaquest.api.exception.EmployeeNotFoundException;
 import com.reliaquest.api.exception.ErrorResponse;
+import java.time.LocalDateTime;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import java.time.LocalDateTime;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -34,7 +33,8 @@ public class GlobalExceptionHandler {
                 .append(": ")
                 .append(error.getDefaultMessage())
                 .append("; "));
-        ErrorResponse errorResponse = new ErrorResponse(LocalDateTime.now(),errorMessage.toString(), HttpStatus.BAD_REQUEST.value());
+        ErrorResponse errorResponse =
+                new ErrorResponse(LocalDateTime.now(), errorMessage.toString(), HttpStatus.BAD_REQUEST.value());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 

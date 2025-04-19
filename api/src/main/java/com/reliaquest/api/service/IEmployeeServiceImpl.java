@@ -68,14 +68,25 @@ public class IEmployeeServiceImpl implements IEmployeeService {
 
             Employee employee = response.getBody().getData();
             return employee;
-        } catch (HttpClientErrorException.NotFound ex) {
-            logger.error("getEmployeeById() response: Employee with employeeId {} not found", employeeId);
-            throw new EmployeeNotFoundException("Employee with id " + employeeId + " not found.");
+        } catch (HttpClientErrorException ex) {
+            // Check if it's a 404 Not Found error
+            if (ex.getStatusCode() == HttpStatus.NOT_FOUND) {
+                logger.error("getEmployeeById() response: Employee with employeeId {} not found", employeeId);
+                throw new EmployeeNotFoundException("Employee with id " + employeeId + " not found.");
+            }
+            // For other HttpClientErrorExceptions, log the status and rethrow
+            logger.error(
+                    "getEmployeeById() response: HTTP error occurred with status {} for employeeId {}",
+                    ex.getStatusCode(),
+                    employeeId);
+            throw new CustomRuntimeException(
+                    "HTTP error occurred while fetching employee by id: " + ex.getStatusCode());
+
         } catch (Exception ex) {
             logger.error(
-                    "getEmployeeById() : Unexpected error occured while fetching employee by id : " + ex.getMessage());
+                    "getEmployeeById() : Unexpected error occurred while fetching employee by id : " + ex.getMessage());
             throw new CustomRuntimeException(
-                    "Unexpected error occured while fetching employee by id " + ex.getCause());
+                    "Unexpected error occurred while fetching employee by id: " + ex.getCause());
         }
     }
 
@@ -92,8 +103,7 @@ public class IEmployeeServiceImpl implements IEmployeeService {
         } catch (Exception ex) {
             logger.error("getHighestSalaryOfEmployees() : Unexpected error occured while fetching highest salary : "
                     + ex.getMessage());
-            throw new CustomRuntimeException(
-                    "Unexpected error occured while fetching highest salary " + ex.getCause());
+            throw new CustomRuntimeException("Unexpected error occured while fetching highest salary " + ex.getCause());
         }
     }
 
@@ -111,10 +121,10 @@ public class IEmployeeServiceImpl implements IEmployeeService {
 
         } catch (Exception ex) {
             logger.error(
-                    "getTopTenHighestEarningEmployeeNames() : Unexpected error occured while fetching highest salary  : "
+                    "getTopTenHighestEarningEmployeeNames() : Unexpected error occured while fetching top ten highest earning employee : "
                             + ex.getMessage());
             throw new CustomRuntimeException(
-                    "Unexpected error occured while fetching highest salary " + ex.getCause());
+                    "Unexpected error occured while fetching top ten highest earning employee " + ex.getCause());
         }
     }
 
@@ -147,10 +157,6 @@ public class IEmployeeServiceImpl implements IEmployeeService {
     public String deleteEmployeeById(String employeeId) {
         try {
             String employeeName = getEmployeeById(employeeId).getName();
-            if (employeeName == null) {
-                logger.error("deleteEmployeeById(): Employee with id " + employeeId + " doesn't exists");
-                throw new EmployeeNotFoundException("Employee with id " + employeeId + " doesn't exists");
-            }
             DeleteEmployeeRequest deleteEmployeeRequest = new DeleteEmployeeRequest();
             deleteEmployeeRequest.setName(employeeName);
 
@@ -168,8 +174,7 @@ public class IEmployeeServiceImpl implements IEmployeeService {
         } catch (Exception ex) {
             logger.error("deleteEmployeeById() : Unexpected error occured while deleting employee by id : "
                     + ex.getMessage());
-            throw new CustomRuntimeException(
-                    "Unexpected error occured while deleting employee by id " + ex.getCause());
+            throw new CustomRuntimeException("Unexpected error occured while deleting employee by id " + ex.getCause());
         }
     }
 
@@ -189,9 +194,10 @@ public class IEmployeeServiceImpl implements IEmployeeService {
         try {
             ResponseEntity<EmployeeResponseWrapper> response = fetchEmployeeData();
 
+            String searchName = employeeName.trim().toLowerCase();
             return response.getBody().getData().stream()
                     .filter(emp ->
-                            emp.getName() != null && emp.getName().toLowerCase().contains(employeeName.toLowerCase()))
+                            emp.getName() != null && emp.getName().toLowerCase().contains(searchName))
                     .toList();
         } catch (Exception ex) {
             return Collections.emptyList();

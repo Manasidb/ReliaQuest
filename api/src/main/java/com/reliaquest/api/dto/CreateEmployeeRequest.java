@@ -1,10 +1,7 @@
 package com.reliaquest.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,5 +29,6 @@ public class CreateEmployeeRequest {
     String title;
 
     @JsonProperty("email")
+    @Email(message = "Email should be valid")
     String email;
 }

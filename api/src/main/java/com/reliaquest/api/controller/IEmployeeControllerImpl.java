@@ -30,40 +30,41 @@ public class IEmployeeControllerImpl implements IEmployeeController {
 
     @Override
     public ResponseEntity<List<Employee>> getAllEmployees() {
-        return new ResponseEntity<>(iEmployeeService.getAllEmployees(), HttpStatus.OK);
+        return ResponseEntity.ok(iEmployeeService.getAllEmployees());
     }
 
     @Override
     public ResponseEntity<List<Employee>> getEmployeesByNameSearch(@PathVariable("searchString") String employeeName) {
         logger.info("IEmployeeControllerImpl : getEmployeesByNameSearch() : employeeName : {}", employeeName);
-        return new ResponseEntity<>(iEmployeeService.getEmployeesByNameSearch(employeeName), HttpStatus.OK);
+        return ResponseEntity.ok(iEmployeeService.getEmployeesByNameSearch(employeeName));
     }
 
     @Override
     public ResponseEntity<Employee> getEmployeeById(@PathVariable("id") String employeeId) {
         logger.info("IEmployeeControllerImpl : getEmployeeById() : employeeId : {}", employeeId);
-        return new ResponseEntity<>(iEmployeeService.getEmployeeById(employeeId), HttpStatus.OK);
+        return ResponseEntity.ok(iEmployeeService.getEmployeeById(employeeId));
     }
 
     @Override
     public ResponseEntity<Integer> getHighestSalaryOfEmployees() {
-        return new ResponseEntity<>(iEmployeeService.getHighestSalaryOfEmployees(), HttpStatus.OK);
+        return ResponseEntity.ok(iEmployeeService.getHighestSalaryOfEmployees());
     }
 
     @Override
     public ResponseEntity<List<String>> getTopTenHighestEarningEmployeeNames() {
-        return new ResponseEntity<>(iEmployeeService.getTopTenHighestEarningEmployeeNames(), HttpStatus.OK);
+        return ResponseEntity.ok(iEmployeeService.getTopTenHighestEarningEmployeeNames());
     }
 
     @Override
     public ResponseEntity<Employee> createEmployee(@Valid @RequestBody CreateEmployeeRequest createEmployeeRequest) {
         logger.info("IEmployeeControllerImpl : createEmployee() : createEmployeeRequest : {}", createEmployeeRequest);
-        return new ResponseEntity<>(iEmployeeService.createEmployee(createEmployeeRequest), HttpStatus.CREATED);
+        Employee createdEmployee = iEmployeeService.createEmployee(createEmployeeRequest);
+        return new ResponseEntity<>(createdEmployee, HttpStatus.CREATED);
     }
 
     @Override
     public ResponseEntity<String> deleteEmployeeById(@PathVariable("id") String employeeId) {
         logger.info("IEmployeeControllerImpl : deleteEmployeeById() : employeeId : {}", employeeId);
-        return new ResponseEntity<>(iEmployeeService.deleteEmployeeById(employeeId), HttpStatus.CREATED);
+        return ResponseEntity.ok(iEmployeeService.deleteEmployeeById(employeeId));
     }
 }
