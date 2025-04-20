@@ -73,7 +73,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    void getAllEmployeesSuccess() {
+    void testGetAllEmployeesSuccess() {
         // Mock get all employee
         EmployeeResponseWrapper employeeResponseWrapper = new EmployeeResponseWrapper();
         employeeResponseWrapper.setData(employeeList);
@@ -96,7 +96,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    void getAllEmployeesFallbackTriggered() {
+    void testGetAllEmployeesFallbackTriggered() {
         Mockito.when(restTemplate.exchange(
                         eq(MOCK_EMPLOYEE_API_URL), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"));
@@ -109,7 +109,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    void getEmployeesByNameSearchSuccess() {
+    void testGetEmployeesByNameSearchSuccess() {
         // Mock get all employee
         EmployeeResponseWrapper employeeResponseWrapper = new EmployeeResponseWrapper();
         employeeResponseWrapper.setData(employeeList);
@@ -130,7 +130,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    void getEmployeesByNameSearchNotFound() {
+    void testGetEmployeesByNameSearchNotFound() {
         String employeeName = "xyz";
 
         // Mock get all employee
@@ -152,7 +152,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    void getEmployeeByIdSuccess() {
+    void testGetEmployeeByIdSuccess() {
         // Mock get employee by id
         Employee employee = new Employee("1", "employee1", "1000000", "18", "title employee1", "employee1@gmail.com");
         EmployeeResponse employeeResponse = new EmployeeResponse();
@@ -176,12 +176,10 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    void getEmployeeByIdNotFound() {
+    void testGetEmployeeByIdNotFound() {
         String employeeId = "123";
-        // Empty headers for this test
         HttpHeaders headers = new HttpHeaders();
 
-        // Mock RestTemplate throwing HttpClientErrorException (
         Mockito.when(restTemplate.exchange(
                         eq(MOCK_EMPLOYEE_API_URL + "/" + employeeId),
                         eq(HttpMethod.GET),
@@ -199,7 +197,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    void getEmployeeByIdFailure() {
+    void testGetEmployeeByIdFailure() {
         String employeeId = "123";
         HttpHeaders headers = new HttpHeaders();
 
@@ -219,7 +217,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    void getHighestSalaryOfEmployeesSuccess() {
+    void testGetHighestSalaryOfEmployeesSuccess() {
         // Mock get all employee
         EmployeeResponseWrapper employeeResponseWrapper = new EmployeeResponseWrapper();
         employeeResponseWrapper.setData(employeeList);
@@ -239,7 +237,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    void getHighestSalaryOfEmployeesFailure() {
+    void testGetHighestSalaryOfEmployeesFailure() {
 
         Mockito.when(restTemplate.exchange(
                         eq(MOCK_EMPLOYEE_API_URL), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
@@ -254,7 +252,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    void getTopTenHighestEarningEmployeeNamesSuccess() {
+    void testGetTopTenHighestEarningEmployeeNamesSuccess() {
         // Mock employees
         EmployeeResponseWrapper employeeResponseWrapper = new EmployeeResponseWrapper();
         employeeResponseWrapper.setData(employeeList);
@@ -280,7 +278,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    void getTopTenHighestEarningEmployeeNamesFailure() {
+    void testGetTopTenHighestEarningEmployeeNamesFailure() {
         Mockito.when(restTemplate.exchange(
                         eq(MOCK_EMPLOYEE_API_URL), eq(HttpMethod.GET), isNull(), eq(EmployeeResponseWrapper.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"));
@@ -296,7 +294,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    void createEmployeeSuccess() {
+    void testCreateEmployeeSuccess() {
         // Mock get employee by id
         EmployeeResponseWrapper employeeResponseWrapper = new EmployeeResponseWrapper();
         employeeResponseWrapper.setData(Collections.emptyList());
@@ -328,7 +326,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    void createEmployeeFailure() {
+    void testCreateEmployeeFailure() {
         Mockito.when(restTemplate.postForEntity(
                         eq(MOCK_EMPLOYEE_API_URL), Mockito.any(HttpEntity.class), eq(EmployeeResponse.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error"));
@@ -345,7 +343,7 @@ public class EmployeeServiceImplTest {
         String employeeId = "1";
         String employeeName = "abc";
 
-        // Mock GET Employee by ID
+        // Mock get Employee by ID
         Employee mockEmployee = new Employee();
         mockEmployee.setId(employeeId);
         mockEmployee.setName(employeeName);
@@ -364,7 +362,7 @@ public class EmployeeServiceImplTest {
                         eq(EmployeeResponse.class)))
                 .thenReturn(new ResponseEntity<>(mockGetResponse, HttpStatus.OK));
 
-        //  Mock DELETE Employee
+        //  Mock delete Employee
         DeleteEmployeeResponse deleteResponse = new DeleteEmployeeResponse();
         deleteResponse.setData(true);
 

@@ -12,13 +12,16 @@ import org.springframework.context.annotation.Configuration;
 @EnableCaching
 public class CacheConfig {
 
+    /**
+     * configures Caffeine cache with CacheManager with some configuration
+     */
     @Bean
     public CacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager("employeeById");
         cacheManager.setCaffeine(Caffeine.newBuilder()
                 .maximumSize(1000)
                 .expireAfterWrite(10, TimeUnit.MINUTES)
-                .recordStats()); // 💥 This enables statistics
+                .recordStats());
         return cacheManager;
     }
 }

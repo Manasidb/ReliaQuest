@@ -38,6 +38,11 @@ public class EmployeeServiceImpl implements IEmployeeService {
         this.restTemplate = restTemplate;
     }
 
+    /**
+     * we acn add circuit breaker and retry mechanism for other methods also. We can return cache data if server is down
+     * We can add pagination with custom logic here
+     * @return List of employees
+     */
     @CircuitBreaker(name = "employeeService", fallbackMethod = "fallbackGetEmployees")
     @Retry(name = "employeeService", fallbackMethod = "fallbackGetEmployees")
     @Override
@@ -66,6 +71,11 @@ public class EmployeeServiceImpl implements IEmployeeService {
         }
     }
 
+    /**
+     *  We can add caching for getEmployeesByNameSearch also
+     * @param employeeId ID of requested employee
+     * @return employee information
+     */
     @Cacheable(value = "employeeById", key = "#employeeId")
     @Override
     public Employee getEmployeeById(String employeeId) {
@@ -77,7 +87,6 @@ public class EmployeeServiceImpl implements IEmployeeService {
             Employee employee = response.getBody().getData();
             return employee;
         } catch (HttpClientErrorException ex) {
-            // Check if it's a 404 Not Found error
             if (ex.getStatusCode() == HttpStatus.NOT_FOUND) {
                 logger.error("getEmployeeById() response: Employee with employeeId {} not found", employeeId);
                 throw new EmployeeNotFoundException("Employee with id " + employeeId + " not found.");
@@ -161,6 +170,11 @@ public class EmployeeServiceImpl implements IEmployeeService {
         }
     }
 
+    /**
+     *  CacheEvict removes key from cache if employee is deleted
+     * @param employeeId ID of employee that needs to be deleted
+     * @return acknowledgement of deletion of employee
+     */
     @CacheEvict(value = "employeeById", key = "#employeeId")
     @Override
     public String deleteEmployeeById(String employeeId) {
@@ -199,18 +213,28 @@ public class EmployeeServiceImpl implements IEmployeeService {
         return null;
     }
 
+    /**
+     *  Refactor to a single reusable method for fetching employee data, since the same logic is duplicated in multiple places.
+     * @return all employee data
+     */
     private ResponseEntity<EmployeeResponseWrapper> fetchEmployeeData() {
         ResponseEntity<EmployeeResponseWrapper> response =
                 restTemplate.exchange(MOCK_EMPLOYEE_API_URL, HttpMethod.GET, null, EmployeeResponseWrapper.class);
         return response;
     }
 
+    /**
+     * Refactor to a single reusable method for getHeader, since the same logic is duplicated in multiple places.
+     */
     private HttpHeaders getHeader() {
         HttpHeaders header = new HttpHeaders();
         header.setContentType(MediaType.APPLICATION_JSON);
         return header;
     }
 
+    /**
+     * Refactor to a single reusable method for searchEmployeesByName, since the same logic is duplicated in multiple places with slight change in use.
+     */
     private List<Employee> searchEmployeesByName(String employeeName) {
         try {
             ResponseEntity<EmployeeResponseWrapper> response = fetchEmployeeData();

@@ -20,7 +20,7 @@ public class CreateEmployeeRequest {
     String salary;
 
     @JsonProperty("age")
-    @NotNull(message = "Salary must not be null") @Min(value = 16, message = "Minimum age should be 16")
+    @NotNull(message = "Age should not be null") @Min(value = 16, message = "Minimum age should be 16")
     @Max(value = 75, message = "Maximum age should be 75")
     String age;
 

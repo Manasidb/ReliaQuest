@@ -63,7 +63,7 @@ public class EmployeeControllerImpl implements IEmployeeController {
     }
 
     @Override
-    public ResponseEntity<String> deleteEmployeeById(@PathVariable(value = "id") String employeeId) {
+    public ResponseEntity<String> deleteEmployeeById(@Valid @PathVariable(value = "id") String employeeId) {
         logger.info("IEmployeeControllerImpl : deleteEmployeeById() : employeeId : {}", employeeId);
         return ResponseEntity.ok(iEmployeeService.deleteEmployeeById(employeeId));
     }
